@@ -1,0 +1,74 @@
+@startuml
+
+title Multi-Tool AI Agent Architecture
+
+left to right direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam defaultTextAlignment center
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 45
+
+actor "User" as User
+
+package "Application Layer" {
+
+    component "Command-Line Interface\napp.py" as App
+
+    component "Conversation Memory\nLast 5 Messages" as Memory
+
+    component "Tool Usage History\nand Timing Metrics" as Tracker
+
+    database "Application Log\ntool_usage.log" as Log
+
+    App -down-> Memory
+    App -down-> Tracker
+    Tracker -down-> Log
+}
+
+package "Agent Layer" {
+
+    component "LangChain Tool-Calling Agent\nagent/agent.py" as Agent
+
+    cloud "Google Gemini API\nGemini 2.5 Flash" as Gemini
+
+    Agent -down-> Gemini
+}
+
+package "Tools Layer" {
+
+    component "Calculator Tool\ntools/calculator.py\n\nMath Expressions\nPercentages\nVAT and Discounts" as Calculator
+
+    component "Web Search Tool\ntools/web_search.py\n\nCurrent Information\nSummaries and Sources" as WebSearch
+
+    component "PDF Summarizer Tool\ntools/pdf_summarizer.py\n\nSummaries\nKey Takeaways\nDocument Q&A" as PDFTool
+
+    Calculator -[hidden]down-> WebSearch
+    WebSearch -[hidden]down-> PDFTool
+}
+
+package "External Services and PDF RAG" {
+
+    cloud "DuckDuckGo\nWeb Search" as DuckDuckGo
+
+    component "PDF RAG Pipeline\n\nPyPDF Text Extraction\n↓\nText Splitting\n↓\nHugging Face Embeddings\n↓\nChroma Vector Store" as RAG
+
+    DuckDuckGo -[hidden]down-> RAG
+}
+
+User --> App
+App --> Agent
+
+Agent --> Calculator
+Agent --> WebSearch
+Agent --> PDFTool
+
+WebSearch --> DuckDuckGo
+PDFTool --> RAG
+PDFTool --> Gemini
+
+@enduml

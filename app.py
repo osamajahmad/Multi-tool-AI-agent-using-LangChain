@@ -6,6 +6,10 @@ from langchain_core.messages import HumanMessage, AIMessage
 
 from agent.agent import create_agent
 
+from tools.pdf_summarizer import (
+    select_pdf,
+    get_selected_pdf_name
+)
 
 # Save tool usage information in a log file
 logging.basicConfig(
@@ -171,8 +175,12 @@ def show_intro():
     print("3. PDF Summarizer Tool")
 
     print("\nCommands:")
+    print("- Type 'pdf' to select a PDF file.")
     print("- Type 'history' to view tool usage history.")
     print("- Type 'exit' or 'quit' to stop the application.")
+
+    print("\nCurrent PDF:")
+    print(get_selected_pdf_name())
 
     print("\nExample questions:")
     print("- Calculate 15% VAT on 250 AED")
@@ -208,20 +216,23 @@ def main():
 
         user_input = user_input.strip()
 
-        if user_input.lower() == "exit":
-            print("\nGoodbye!")
-            break
-
         if user_input.lower() == "quit":
             print("\nGoodbye!")
             break
 
-        if user_input.lower() == "history":
-            show_tool_history(tool_usage_history)
+        if user_input.lower() == "pdf":
+
+            pdf_path = input(
+            "Enter the full path of the PDF file: "
+        )
+    
+            result = select_pdf(pdf_path)
+
+            print("\n" + result)
             continue
 
-        if user_input == "":
-            print("Please enter a question.")
+        if user_input.lower() == "history":
+            show_tool_history(tool_usage_history)
             continue
 
         # Bonus 3: Tool execution timing

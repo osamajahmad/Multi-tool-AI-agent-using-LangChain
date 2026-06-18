@@ -1,118 +1,355 @@
 # Multi-Tool AI Agent
 
-A command-line AI assistant built with Python and LangChain. The agent decides which tool to use based on the user’s request and can use more than one tool when necessary.
+A command-line AI assistant built with Python and LangChain. The agent analyzes the user’s request, automatically selects the appropriate tool, and can use multiple tools in the same request when necessary.
+
+The project was created for the **AI Intern – Week 3 Assignment** and focuses on:
+
+* Tool creation
+* Agent reasoning
+* Tool routing
+* Error handling
+* Modular code organization
+* Conversation memory
+* Tool execution tracking
+
+---
+
+## Project Deliverables
+
+### Source Code Repository
+
+GitHub repository:
+
+```text
+[GitHub Repository](https://github.com/osamajahmad/Multi-tool-AI-agent-using-LangChain)
+```
+
+### Architecture Diagram
+
+Architecture diagram:
+
+```text
+![Multi-Tool AI Agent Architecture](docs/architecture_diagram.png)
+```
+
+### Demo Video
+
+Five-minute demonstration video:
+
+```text
+[Watch the Demo Video](https://youtu.be/nj5EwYUReVg)
+```
+
+---
+
+## Features
+
+The project includes three main tools:
+
+1. Calculator Tool
+2. Web Search Tool
+3. PDF Summarizer Tool
+
+The LangChain agent decides which tool to use based on the user’s request.
+
+The agent can also combine multiple tools in one response.
+
+Example:
+
+```text
+Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.
+```
+
+For this request, the agent:
+
+1. Uses the Web Search Tool to find current AI news.
+2. Uses the Calculator Tool to calculate the budget growth.
+3. Combines both results into one final answer.
+
+---
 
 ## Tools
 
-The project includes three tools:
+### 1. Calculator Tool
 
-### Calculator
+The Calculator Tool handles common mathematical requests.
 
-Supports:
+It supports:
 
-* Addition, subtraction, multiplication, and division
+* Addition
+* Subtraction
+* Multiplication
+* Division
 * Percentages
 * VAT calculations
 * Discounts
+* Monthly-payment calculations
 * Simple mathematical expressions
+* Brackets
+* Decimal values
+* Negative values
 
 Example questions:
 
-* `What is 125 * 42?`
-* `Calculate 15% VAT on 250 AED`
-* `Calculate monthly payment for 5000 divided by 12`
+```text
+What is 125 * 42?
+```
 
-### Web Search
+```text
+Calculate 15% VAT on 250 AED.
+```
 
-Uses DuckDuckGo to search for current information.
+```text
+Calculate monthly payment for 5000 divided by 12.
+```
 
-The tool returns:
+```text
+What is 10% of 10?
+```
 
-* A short summary of the search results
+```text
+Calculate a 20% discount on 300 AED.
+```
+
+The calculator also handles errors such as invalid expressions and division by zero.
+
+---
+
+### 2. Web Search Tool
+
+The Web Search Tool uses DuckDuckGo to search for current information.
+
+It returns:
+
+* A concise summary of the search results
 * Source titles
 * Source links
 
 Example questions:
 
-* `Latest AI news`
-* `What is LangChain?`
-* `Recent developments in LLMs`
+```text
+Latest AI news
+```
 
-### PDF Summarizer
+```text
+What is LangChain?
+```
 
-Reads the PDF stored at `data/sample.pdf`.
+```text
+Recent developments in large language models
+```
 
-The PDF tool can:
+```text
+What are the latest developments in generative AI?
+```
 
-* Extract text
-* Generate a summary
+The Web Search Tool is useful when the user asks about recent information that may not be available in the language model’s existing knowledge.
+
+Internet access is required for this tool.
+
+---
+
+### 3. PDF Summarizer Tool
+
+The PDF Summarizer Tool can:
+
+* Extract text from a PDF
+* Generate a document summary
 * List key takeaways
 * Answer questions about the document
+* Search for specific information inside the PDF
 
-It uses a RAG workflow:
+The default PDF is stored at:
 
-1. Extract text from the PDF
-2. Split the text into chunks
-3. Create embeddings
-4. Store the chunks in Chroma
-5. Retrieve the most relevant chunks
-6. Send the retrieved context to Gemini
+```text
+data/AI_and_Future_Jobs_20_Page_Report.pdf
+```
 
-Example questions:
+If the user does not select another PDF, the application continues using this default document.
 
-* `Summarize this PDF`
-* `What are the key points?`
-* `What does the document say about security?`
+The user can also select another PDF by entering:
 
-## Agent Behaviour
+```text
+pdf
+```
 
-The agent automatically chooses the correct tool.
-
-Examples:
-
-* A math question uses the Calculator Tool.
-* A question about current information uses the Web Search Tool.
-* A question about the local PDF uses the PDF Summarizer Tool.
-
-The agent can also use multiple tools in one request.
+and then providing the full path of the PDF file.
 
 Example:
 
-`Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.`
+```text
+C:\Users\User\Documents\report.pdf
+```
 
-For this request, the agent should use both the Web Search Tool and the Calculator Tool, then combine the results.
+After selecting the file, the PDF tool uses the newly selected PDF for summaries and questions.
+
+Example questions:
+
+```text
+Summarize this PDF.
+```
+
+```text
+What are the key points?
+```
+
+```text
+What are the main takeaways?
+```
+
+```text
+What does the document say about security?
+```
+
+```text
+What jobs are discussed in the document?
+```
+
+The PDF must contain selectable text. Scanned image-only PDFs are not supported because OCR is not included.
+
+---
+
+## PDF RAG Workflow
+
+The PDF tool uses Retrieval-Augmented Generation, also known as RAG.
+
+The workflow is:
+
+1. Read and extract text from the PDF.
+2. Split the extracted text into smaller chunks.
+3. Convert the chunks into embeddings.
+4. Store the embeddings in a Chroma vector store.
+5. Search for the chunks most relevant to the user’s question.
+6. Send the relevant context to Gemini.
+7. Generate an answer based only on the PDF content.
+
+For full-document requests such as summaries or key takeaways, the tool uses the complete extracted document text.
+
+For specific questions, it retrieves the most relevant chunks using similarity search.
+
+The embedding model used is:
+
+```text
+sentence-transformers/all-MiniLM-L6-v2
+```
+
+---
+
+## Agent Logic
+
+The agent is responsible for understanding the request and selecting the correct tool.
+
+Examples:
+
+| User request                                    | Tool selected                   |
+| ----------------------------------------------- | ------------------------------- |
+| `What is 125 * 42?`                             | Calculator Tool                 |
+| `What is the latest AI news?`                   | Web Search Tool                 |
+| `Summarize this PDF.`                           | PDF Summarizer Tool             |
+| `Search for AI news and calculate 10% of 5000.` | Web Search and Calculator Tools |
+
+The agent can answer general questions directly when no external tool is needed.
+
+The agent prompt contains instructions that help it:
+
+* Choose the correct tool
+* Use multiple tools when required
+* Avoid unnecessary tool calls
+* Return a clear final response
+* Handle tool failures gracefully
+
+---
 
 ## LLM Provider
 
-The project uses **Google Gemini 2.5 Flash**.
+The project uses:
 
-The assignment mentions the OpenAI API, but Gemini was used based on the previous recommendation to use a free-tier model provider. The LLM can be changed later without changing the individual tools.
+```text
+Google Gemini 2.5 Flash
+```
+
+The assignment originally mentions the OpenAI API. Gemini was used because it provides a suitable free-tier option for development and testing.
+
+The Gemini model is connected through:
+
+```text
+langchain-google-genai
+```
+
+The project structure allows the language model provider to be changed later without rewriting the individual tools.
+
+The model temperature is set to:
+
+```text
+0.3
+```
+
+This helps produce responses that are clear and consistent while still allowing some flexibility.
+
+---
 
 ## Bonus Features
 
-The project includes three bonus features.
+The assignment requires any two bonus features. This project includes three.
 
-### Conversation Memory
+### 1. Conversation Memory
 
-The application keeps the most recent conversation messages so the user can ask follow-up questions.
+The application stores the latest five conversation messages.
 
-### Tool Usage History
+This allows the user to ask follow-up questions.
 
-The application records which tools were used during the current session.
+Example:
 
-Type:
+```text
+You: Calculate 15% of 500.
+```
+
+Then:
+
+```text
+You: Add that result to the original amount.
+```
+
+The memory is limited to five messages so that the conversation history does not grow continuously.
+
+The memory resets when the application is closed.
+
+---
+
+### 2. Tool Usage History
+
+The application records the tools used during the current session.
+
+Enter:
 
 ```text
 history
 ```
 
-to display the tool usage history.
+to view the history.
 
-Tool activity is also written to `tool_usage.log`.
+Example output:
 
-### Tool Execution Timing
+```text
+Request 1
+Question: What is 125 * 42?
+Tool: calculator_tool
+Status: Success
+Execution time: 0.01 seconds
+```
 
-The application measures how long each tool takes to finish.
+The history includes:
+
+* User question
+* Tool name
+* Tool status
+* Execution time
+
+---
+
+### 3. Tool Execution Timing Metrics
+
+LangChain callbacks are used to measure how long each tool takes to complete.
 
 Example:
 
@@ -122,39 +359,166 @@ Status: Success
 Execution time: 2.41 seconds
 ```
 
+This helps monitor tool performance and identify slow operations.
+
+---
+
+## Logging
+
+Tool activity and application errors are stored in:
+
+```text
+tool_usage.log
+```
+
+The log file is created automatically when the application runs.
+
+The log can include:
+
+* User questions
+* Tool names
+* Tool status
+* Execution time
+* Agent errors
+* Application errors
+
+The log file should not be uploaded if it contains unnecessary local testing information.
+
+---
+
 ## Project Structure
 
 ```text
-Task 3 - Multi Tool Agent/
+Task 3/
+│
+├── agent/
+│   └── agent.py
 │
 ├── tools/
 │   ├── calculator.py
 │   ├── web_search.py
 │   └── pdf_summarizer.py
 │
-├── agent/
-│   └── agent.py
-│
 ├── data/
-│   └── sample.pdf
+│   └── AI_and_Future_Jobs_20_Page_Report.pdf
 │
 ├── app.py
 ├── requirements.txt
-├── .env
+├── README.md
 ├── .env.example
-├── .gitignore
-└── README.md
+└── .gitignore
 ```
 
-## Setup
+### File Responsibilities
 
-### 1. Open the project folder
+#### `app.py`
+
+The main command-line application.
+
+It is responsible for:
+
+* Starting the program
+* Reading user input
+* Displaying the agent response
+* Managing conversation memory
+* Recording tool history
+* Measuring tool execution time
+* Writing activity to the log file
+* Handling commands such as `history`, `pdf`, `exit`, and `quit`
+
+#### `agent/agent.py`
+
+Creates and configures the LangChain agent.
+
+It is responsible for:
+
+* Initializing Gemini
+* Registering the available tools
+* Defining the agent instructions
+* Creating the tool-calling agent
+* Creating the `AgentExecutor`
+
+#### `tools/calculator.py`
+
+Contains the calculator logic and calculator LangChain tool.
+
+#### `tools/web_search.py`
+
+Contains the DuckDuckGo search logic and web-search LangChain tool.
+
+#### `tools/pdf_summarizer.py`
+
+Contains:
+
+* PDF text extraction
+* Text splitting
+* Embedding creation
+* Chroma vector storage
+* Similarity search
+* PDF summarization
+* PDF question answering
+
+#### `data/`
+
+Contains the default PDF used by the application.
+
+#### `.env.example`
+
+Shows the required environment-variable format without containing a real API key.
+
+#### `.gitignore`
+
+Prevents private or unnecessary files from being uploaded, including:
+
+* `.env`
+* `.venv`
+* `__pycache__`
+* Python cache files
+* Log files
+* Chroma database files
+
+---
+
+## Requirements
+
+The project requires:
+
+* Python
+* LangChain
+* Google Gemini API
+* DuckDuckGo Search
+* PyPDF
+* Chroma
+* Hugging Face sentence-transformer embeddings
+* Python Dotenv
+
+A valid Gemini API key and internet connection are required.
+
+---
+
+## Setup Instructions
+
+### 1. Download or clone the project
+
+Using Git:
 
 ```bash
-cd "Task 3 - Multi Tool Agent"
+git clone https://github.com/osamajahmad/Multi-tool-AI-agent-using-LangChain
 ```
 
+Then open the project folder:
+
+```bash
+cd Multi-tool-AI-agent-using-LangChain
+```
+
+The exact folder name may be different depending on the repository name.
+
+---
+
 ### 2. Create a virtual environment
+
+Run:
 
 ```bash
 python -m venv .venv
@@ -166,122 +530,200 @@ Activate it on Windows:
 .venv\Scripts\activate
 ```
 
-### 3. Install the requirements
+Activate it on macOS or Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+---
+
+### 3. Install the dependencies
+
+Run:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-If `requirements.txt` has not been created yet, install the packages manually:
+The first time the PDF tool runs, the Hugging Face embedding model may need to be downloaded.
 
-```bash
-pip install -U langchain langchain-google-genai python-dotenv pypdf duckduckgo-search ddgs langchain-text-splitters langchain-huggingface langchain-chroma sentence-transformers
-```
+---
 
-Then generate the requirements file:
+### 4. Configure the Gemini API key
 
-```bash
-pip freeze > requirements.txt
-```
-
-### 4. Add the Gemini API key
-
-Create a `.env` file in the main project folder:
-
-```env
-GOOGLE_API_KEY=your_gemini_api_key_here
-```
-
-The `.env.example` file should contain:
-
-```env
-GOOGLE_API_KEY=your_api_key_here
-```
-
-Do not upload the real `.env` file to GitHub.
-
-### 5. Add a PDF
-
-Place a PDF inside the `data` folder and name it:
+Create a file named:
 
 ```text
-sample.pdf
+.env
 ```
 
-The full path should be:
+inside the main project folder.
+
+Add:
+
+```env
+GOOGLE_API_KEY=your_google_api_key_here
+```
+
+The project also includes `.env.example` as a template.
+
+Do not upload the real `.env` file to GitHub or include it in the submission ZIP.
+
+---
+
+### 5. Check the default PDF
+
+The default PDF should be located at:
 
 ```text
-data/sample.pdf
+data/AI_and_Future_Jobs_20_Page_Report.pdf
 ```
 
-The PDF should contain selectable text. Scanned image-only PDFs may not work because OCR is not included.
+The application uses this PDF unless the user selects another document.
+
+---
 
 ## Running the Application
 
-Run the main file:
+Run:
 
 ```bash
 python app.py
 ```
 
-The application will start a command-line chat.
+The command-line interface will display:
 
-Example:
+* Available tools
+* Available commands
+* Example questions
+
+Example interaction:
 
 ```text
-You: Calculate 15% VAT on 250 AED
+You: Calculate 15% VAT on 250 AED.
 ```
 
-Available commands:
+The agent selects the Calculator Tool and returns the VAT amount and final total.
+
+---
+
+## Application Commands
+
+### View tool history
 
 ```text
 history
 ```
 
-Shows the tool usage history.
+Displays the tools used during the current session.
+
+### Select another PDF
+
+```text
+pdf
+```
+
+The application then asks for the full path of the PDF.
+
+### Stop the application
 
 ```text
 exit
 ```
 
-Stops the application.
+or:
 
 ```text
 quit
 ```
 
-Also stops the application.
+---
 
-## Suggested Tests
+## Suggested Test Cases
 
-### Calculator
+### Calculator Tests
 
 ```text
 What is 125 * 42?
 ```
 
+Expected calculation:
+
 ```text
-Calculate 15% VAT on 250 AED
+5250
 ```
 
 ```text
-Calculate monthly payment for 5000 divided by 12
+Calculate 15% VAT on 250 AED.
 ```
 
-### Web Search
+Expected VAT:
+
+```text
+37.5 AED
+```
+
+Expected total:
+
+```text
+287.5 AED
+```
+
+```text
+Calculate monthly payment for 5000 divided by 12.
+```
+
+Expected result:
+
+```text
+416.6667
+```
+
+```text
+What is 10% of 10?
+```
+
+Expected result:
+
+```text
+1
+```
+
+```text
+Calculate 10 divided by 0.
+```
+
+Expected result:
+
+```text
+A division-by-zero error message
+```
+
+---
+
+### Web Search Tests
+
+```text
+What is LangChain?
+```
 
 ```text
 What is the latest AI news?
 ```
 
 ```text
-What is LangChain?
+What are the recent developments in LLMs?
 ```
 
-### PDF
+The response should include a summary and source links.
+
+---
+
+### PDF Tests
 
 ```text
-Summarize this PDF
+Summarize this PDF.
 ```
 
 ```text
@@ -292,13 +734,30 @@ What are the key points?
 What does the document say about security?
 ```
 
-### Multiple Tools
+```text
+What does the document say about future jobs?
+```
+
+The response should be based on the PDF content.
+
+---
+
+### Multi-Tool Test
 
 ```text
 Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.
 ```
 
-### Conversation Memory
+The agent should use:
+
+1. Web Search Tool
+2. Calculator Tool
+
+It should then combine both results into one response.
+
+---
+
+### Conversation Memory Test
 
 First ask:
 
@@ -312,6 +771,28 @@ Then ask:
 Add that result to the original amount.
 ```
 
+The agent should use the recent conversation context.
+
+---
+
+### Invalid Input Tests
+
+```text
+Calculate 10 divided by 0.
+```
+
+```text
+Summarize a PDF that does not exist.
+```
+
+```text
+Search the web without an internet connection.
+```
+
+The application should return a clear error message instead of stopping unexpectedly.
+
+---
+
 ## Error Handling
 
 The project handles common errors such as:
@@ -320,87 +801,247 @@ The project handles common errors such as:
 * Invalid mathematical expressions
 * Division by zero
 * Missing Gemini API key
-* Missing PDF file
+* Invalid PDF paths
+* Missing PDF files
+* Non-PDF file selection
 * PDFs with no extractable text
-* Web search errors
+* Web-search failures
+* Internet-connection problems
+* Agent initialization errors
 * Tool execution errors
+* Unexpected application errors
 
-## Logging
+The tools return clear messages so the user can understand what went wrong.
 
-Tool activity is stored in:
+---
+
+## Architecture Overview
+
+The project follows a modular architecture.
 
 ```text
-tool_usage.log
+User
+  │
+  ▼
+Command-Line Interface
+app.py
+  │
+  ├── Conversation Memory
+  ├── Tool Usage History
+  ├── Timing Metrics
+  └── Logging
+  │
+  ▼
+LangChain Agent
+agent/agent.py
+  │
+  ▼
+Gemini 2.5 Flash
+  │
+  ├── Calculator Tool
+  ├── Web Search Tool
+  └── PDF Summarizer Tool
+          │
+          ├── PyPDF
+          ├── Text Splitter
+          ├── Hugging Face Embeddings
+          ├── Chroma Vector Store
+          └── Gemini Response Generation
 ```
 
-Each record can include:
+The full architecture diagram is available here:
 
-* User question
-* Tool name
-* Tool status
-* Execution time
-* Application errors
+```text
+![Multi-Tool AI Agent Architecture](docs/architecture_diagram.png)
+```
 
-## Challenges
+---
 
-### Tool Routing
+## Challenges and Lessons Learned
 
-The descriptions of the tools and the agent prompt needed to be clear enough for the agent to choose the correct tool.
+### Challenges
 
-### PDF Question Answering
+#### 1. Choosing the Correct Tool
 
-Sending the entire PDF to the model for every question would be inefficient. Text splitting, embeddings, Chroma, and similarity search were used to retrieve only the relevant sections.
+One of the main challenges was making sure the agent selected the correct tool based on the user’s request.
 
-### Current Information
+Some requests were simple and required only one tool, while others required multiple tools. For example, a request could ask the agent to search for current AI news and also perform a calculation.
 
-The language model may not have recent information, so DuckDuckGo search was added to provide current results and source links.
+To improve tool selection, I wrote clear descriptions for each tool and added instructions to the agent prompt explaining when each tool should be used.
 
-### Memory Management
+---
 
-Conversation memory was limited so the history would not continue growing during a long session.
+#### 2. Handling Multi-Tool Requests
 
-### Tool Tracking
+The agent needed to complete requests that required more than one tool and then combine the results into one clear answer.
 
-LangChain callbacks were used to record which tool was called and how long it took.
+For example:
 
-## Lessons Learned
+```text
+Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.
+```
 
-This project helped me practise:
+The agent had to:
 
-* Creating custom LangChain tools
-* Building a tool-calling agent
-* Routing requests to the correct tool
-* Using more than one tool for a single request
-* Handling tool and API errors
-* Managing environment variables
-* Adding conversation memory
-* Logging tool usage
-* Measuring tool execution time
-* Extracting text from PDFs
-* Splitting text into chunks
-* Creating embeddings
-* Using Chroma for vector search
-* Building a basic RAG workflow
-* Organizing a Python project into separate modules
+1. Use the Web Search Tool.
+2. Use the Calculator Tool.
+3. Combine both results into one final response.
 
-## Limitations
+This required testing the agent instructions and making sure the tools returned results in a format the agent could understand.
 
-* The current version reads one PDF named `sample.pdf`.
-* It does not include a graphical interface.
-* Scanned PDFs are not supported without OCR.
-* Conversation memory resets when the application closes.
-* Web search depends on internet access and DuckDuckGo availability.
-* Gemini requires a valid API key and internet connection.
+---
 
-## Possible Improvements
+#### 3. Building the PDF Summarizer
 
-Future versions could include:
+The PDF Summarizer was the most challenging tool because the document could contain a large amount of text.
 
-* A Streamlit interface
-* PDF uploads
-* Support for multiple PDFs
-* Persistent conversation memory
-* Response caching
-* Unit tests
-* A persistent Chroma database
-* Support for other LLM providers
+Sending the full PDF directly to the language model for every question would be inefficient. To solve this, I used a Retrieval-Augmented Generation workflow.
+
+The PDF text is:
+
+1. Extracted using PyPDF.
+2. Divided into smaller chunks.
+3. Converted into embeddings.
+4. Stored in a Chroma vector store.
+5. Searched to find the sections most relevant to the user’s question.
+
+This allows the agent to answer questions using relevant parts of the document instead of processing the entire PDF every time.
+
+---
+
+#### 4. Working with Current Information
+
+The language model may not always contain the latest information.
+
+The Web Search Tool was added to retrieve current information using DuckDuckGo. The tool also returns source links so the user can check where the information came from.
+
+A challenge was making sure the search output remained clear and concise while still including useful sources.
+
+---
+
+#### 5. Handling Invalid Inputs and Tool Failures
+
+The application needed to continue running even when the user entered invalid input or when a tool failed.
+
+Examples included:
+
+* Division by zero
+* Invalid mathematical expressions
+* Missing PDF files
+* PDFs with no extractable text
+* Empty user input
+* Web-search connection problems
+* Missing or exhausted API keys
+
+I added error handling so these problems return understandable messages instead of stopping the whole application.
+
+---
+
+#### 6. Tracking Tool Execution
+
+I used LangChain callbacks to record which tools were called and how long each tool took to complete.
+
+This was challenging because the callback needed to track each tool separately and connect the start and end times of the same execution.
+
+The collected information is displayed in the tool-usage history and written to the log file.
+
+---
+
+#### 7. API Usage Limits
+
+During testing, the Gemini API key sometimes reached its free-tier request limit.
+
+This made repeated testing slower because I occasionally needed to wait before sending another request.
+
+This taught me the importance of monitoring API usage, avoiding unnecessary model calls, and handling API-limit errors clearly.
+
+---
+
+### Lessons Learned
+
+During this assignment, I learned how to:
+
+* Create custom tools using LangChain.
+* Connect multiple tools to one AI agent.
+* Write clear tool descriptions that improve tool routing.
+* Allow an agent to use more than one tool for a single request.
+* Use Gemini as the language model through LangChain.
+* Create a command-line interface for an AI application.
+* Store API keys securely using environment variables.
+* Handle invalid inputs and tool errors without stopping the application.
+* Add conversation memory for follow-up questions.
+* Limit conversation history to the most recent messages.
+* Use LangChain callbacks to track tool execution.
+* Measure and log tool execution time.
+* Search the web for current information.
+* Return source links with web-search results.
+* Extract text from PDF documents.
+* Split large documents into smaller chunks.
+* Create embeddings using a sentence-transformer model.
+* Store document embeddings in Chroma.
+* Retrieve relevant PDF content using similarity search.
+* Build a Retrieval-Augmented Generation workflow.
+* Organize a Python project into separate tools, agent, and application files.
+* Test individual tools and multi-tool requests.
+* Write setup instructions and project documentation.
+
+Overall, this assignment helped me understand how an AI agent can reason about a user’s request, choose the correct tools, handle errors, and combine different tool results into one useful response.
+
+
+## Security Notes
+
+The real API key must only be stored in:
+
+```text
+.env
+```
+
+The following files and folders should not be uploaded:
+
+```text
+.env
+.venv/
+__pycache__/
+*.pyc
+tool_usage.log
+chroma_db/
+```
+
+Only `.env.example` should be included in the repository.
+
+Example:
+
+```env
+GOOGLE_API_KEY=your_google_api_key_here
+```
+
+---
+
+## Demo Video
+
+The five-minute demo shows:
+
+* Project structure
+* Application startup
+* Calculator Tool
+* Web Search Tool
+* PDF Summarizer Tool
+* Multi-tool request
+* Conversation memory
+* Tool usage history
+* Execution timing
+* Error handling
+
+Demo video link:
+
+```text
+[Watch the Demo Video](https://youtu.be/nj5EwYUReVg)
+```
+
+---
+
+## Author
+
+**Osama Jameel Ahmad**
+
+AI Intern – Week 3 Assignment

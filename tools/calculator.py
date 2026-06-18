@@ -46,20 +46,21 @@ def calculate_percentage(user_text):
 
     percent = float(percent_match.group(1))
 
-    numbers = re.findall(r"\d+(?:\.\d+)?", text)
+    # Remove the percentage part before searching for the main amount.
+    text_without_percentage = (
+        text[:percent_match.start()]
+        + text[percent_match.end():]
+    )
 
-    if len(numbers) < 2:
+    amount_match = re.search(
+        r"\d+(?:\.\d+)?",
+        text_without_percentage
+    )
+
+    if not amount_match:
         return "I found a percentage, but I could not find the main amount."
 
-    amount = None
-
-    for number in numbers:
-        if float(number) != percent:
-            amount = float(number)
-            break
-
-    if amount is None:
-        return "I could not find the amount."
+    amount = float(amount_match.group())
 
     percentage_value = amount * percent / 100
 
@@ -152,6 +153,7 @@ if __name__ == "__main__":
         "What is 20% of 500?",
         "Calculate 15% discount on 759",
         "What is 10 + 5 * 2?",
+        "What is 10% of 10?",
         "What is 10 divided by 0?",
     ]
 

@@ -19,18 +19,54 @@ except ImportError:
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-PDF_FILE = PROJECT_ROOT / "data" / "AI_and_Future_Jobs_20_Page_Report.pdf"
 
+DEFAULT_PDF_FILE = (
+    PROJECT_ROOT
+    / "data"
+    / "AI_and_Future_Jobs_20_Page_Report.pdf"
+)
+
+current_pdf_file = DEFAULT_PDF_FILE
 vector_store = None
+
+
+def select_pdf(pdf_path):
+
+    global current_pdf_file
+    global vector_store
+
+    cleaned_path = pdf_path.strip().strip('"')
+    selected_file = Path(cleaned_path).expanduser()
+
+    if not selected_file.exists():
+        return "PDF error: The selected file does not exist."
+
+    if not selected_file.is_file():
+        return "PDF error: The selected path is not a file."
+
+    if selected_file.suffix.lower() != ".pdf":
+        return "PDF error: Please select a PDF file."
+
+    current_pdf_file = selected_file.resolve()
+
+    # Reset the vector store because a different PDF was selected.
+    vector_store = None
+
+    return "PDF selected successfully: " + current_pdf_file.name
+
+
+def get_selected_pdf_name():
+
+    return current_pdf_file.name
 
 # Read text from data/sample.pdf.
 def read_pdf_text():
 
-    if not PDF_FILE.exists():
-        return "PDF error: sample.pdf was not found inside the data folder."
+    if not current_pdf_file.exists():
+        return "PDF error: The selected PDF file was not found."
 
     try:
-        reader = PdfReader(str(PDF_FILE))
+        reader = PdfReader(str(current_pdf_file))
 
         full_text = ""
 
@@ -151,7 +187,28 @@ If the answer is not found in the PDF context, say that you could not find it in
 # Main PDF tool function.
 def pdf_summarizer(user_question):
 
-    context = search_pdf(user_question)
+    question_lower = user_question.lower()
+
+    summary_keywords = [
+        "summarize",
+        "summary",
+        "key points",
+        "key takeaways",
+        "main points",
+        "overview"
+    ]
+
+    is_full_document_request = any(
+        keyword in question_lower
+        for keyword in summary_keywords
+    )
+
+    if is_full_document_request:
+        # Use the complete document for summaries and key points.
+        context = read_pdf_text()
+    else:
+        # Use RAG retrieval for specific document questions.
+        context = search_pdf(user_question)
 
     if context.startswith("PDF error:"):
         return context
@@ -159,9 +216,7 @@ def pdf_summarizer(user_question):
     if context.strip() == "":
         return "PDF error: No relevant PDF content was found."
 
-    answer = ask_gemini(user_question, context)
-
-    return answer
+    return ask_gemini(user_question, context)
 
 @tool
 def pdf_summarizer_tool(user_question: str) -> str:
