@@ -1,16 +1,15 @@
 # Multi-Tool AI Agent
 
-A command-line AI assistant built with Python and LangChain. The agent analyzes the user’s request, automatically selects the appropriate tool, and can use multiple tools in the same request when necessary.
+A multi-tool AI assistant built with Python and LangChain.
 
-The project was created for the **AI Intern – Week 3 Assignment** and focuses on:
+The agent analyzes each request, automatically selects the appropriate tool, and can use multiple tools when a request requires more than one operation.
 
-* Tool creation
-* Agent reasoning
-* Tool routing
-* Error handling
-* Modular code organization
-* Conversation memory
-* Tool execution tracking
+The project supports two interfaces:
+
+* Command-line interface
+* WhatsApp through the Twilio WhatsApp Sandbox
+
+This project was developed for the **AI Intern – Week 3 Assignment**.
 
 ---
 
@@ -18,43 +17,38 @@ The project was created for the **AI Intern – Week 3 Assignment** and focuses 
 
 ### Source Code Repository
 
-GitHub repository:
-
-```text
 [GitHub Repository](https://github.com/osamajahmad/Multi-tool-AI-agent-using-LangChain)
-```
 
 ### Architecture Diagram
 
-Architecture diagram:
-
-```text
 ![Multi-Tool AI Agent Architecture](docs/architecture_diagram.png)
-```
 
 ### Demo Video
 
-Five-minute demonstration video:
-
-```text
 [Watch the Demo Video](https://youtu.be/nj5EwYUReVg)
-```
 
 ---
 
-## Features
+## Main Features
 
-The project includes three main tools:
+The project includes:
 
-1. Calculator Tool
-2. Web Search Tool
-3. PDF Summarizer Tool
+* Automatic tool selection
+* Multi-tool request handling
+* Calculator Tool
+* Web Search Tool
+* PDF Summarizer Tool
+* Conversation memory
+* Tool usage history
+* Tool execution timing
+* Logging
+* Error handling
+* PDF Retrieval-Augmented Generation
+* Command-line interface
+* WhatsApp integration
+* Background processing for slower requests
 
-The LangChain agent decides which tool to use based on the user’s request.
-
-The agent can also combine multiple tools in one response.
-
-Example:
+Example multi-tool request:
 
 ```text
 Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.
@@ -62,9 +56,9 @@ Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.
 
 For this request, the agent:
 
-1. Uses the Web Search Tool to find current AI news.
+1. Uses the Web Search Tool to retrieve current AI information.
 2. Uses the Calculator Tool to calculate the budget growth.
-3. Combines both results into one final answer.
+3. Combines both results into one final response.
 
 ---
 
@@ -84,7 +78,7 @@ It supports:
 * VAT calculations
 * Discounts
 * Monthly-payment calculations
-* Simple mathematical expressions
+* Mathematical expressions
 * Brackets
 * Decimal values
 * Negative values
@@ -104,31 +98,27 @@ Calculate monthly payment for 5000 divided by 12.
 ```
 
 ```text
-What is 10% of 10?
-```
-
-```text
 Calculate a 20% discount on 300 AED.
 ```
 
-The calculator also handles errors such as invalid expressions and division by zero.
+The tool also handles invalid expressions and division-by-zero errors.
 
 ---
 
 ### 2. Web Search Tool
 
-The Web Search Tool uses DuckDuckGo to search for current information.
+The Web Search Tool uses DuckDuckGo to retrieve current information.
 
 It returns:
 
-* A concise summary of the search results
+* A concise summary
 * Source titles
 * Source links
 
 Example questions:
 
 ```text
-Latest AI news
+What is the latest AI news?
 ```
 
 ```text
@@ -136,16 +126,12 @@ What is LangChain?
 ```
 
 ```text
-Recent developments in large language models
+What are the recent developments in large language models?
 ```
 
-```text
-What are the latest developments in generative AI?
-```
+The Web Search Tool is used when the request requires current information that may not exist in the language model’s built-in knowledge.
 
-The Web Search Tool is useful when the user asks about recent information that may not be available in the language model’s existing knowledge.
-
-Internet access is required for this tool.
+Internet access is required.
 
 ---
 
@@ -157,31 +143,13 @@ The PDF Summarizer Tool can:
 * Generate a document summary
 * List key takeaways
 * Answer questions about the document
-* Search for specific information inside the PDF
+* Search for specific information inside the document
 
 The default PDF is stored at:
 
 ```text
 data/AI_and_Future_Jobs_20_Page_Report.pdf
 ```
-
-If the user does not select another PDF, the application continues using this default document.
-
-The user can also select another PDF by entering:
-
-```text
-pdf
-```
-
-and then providing the full path of the PDF file.
-
-Example:
-
-```text
-C:\Users\User\Documents\report.pdf
-```
-
-After selecting the file, the PDF tool uses the newly selected PDF for summaries and questions.
 
 Example questions:
 
@@ -194,18 +162,24 @@ What are the key points?
 ```
 
 ```text
-What are the main takeaways?
-```
-
-```text
 What does the document say about security?
 ```
 
 ```text
-What jobs are discussed in the document?
+What does the document say about future jobs?
 ```
 
+In the command-line interface, the user can enter:
+
+```text
+pdf
+```
+
+and provide the full path to another PDF file.
+
 The PDF must contain selectable text. Scanned image-only PDFs are not supported because OCR is not included.
+
+The WhatsApp interface currently answers questions using the PDF already configured in the project. It does not accept PDF attachments through WhatsApp.
 
 ---
 
@@ -215,17 +189,17 @@ The PDF tool uses Retrieval-Augmented Generation, also known as RAG.
 
 The workflow is:
 
-1. Read and extract text from the PDF.
+1. Extract text from the PDF using PyPDF.
 2. Split the extracted text into smaller chunks.
 3. Convert the chunks into embeddings.
 4. Store the embeddings in a Chroma vector store.
-5. Search for the chunks most relevant to the user’s question.
+5. Retrieve the chunks most relevant to the user’s question.
 6. Send the relevant context to Gemini.
-7. Generate an answer based only on the PDF content.
+7. Generate an answer based on the document content.
 
-For full-document requests such as summaries or key takeaways, the tool uses the complete extracted document text.
+For full-document requests such as summaries and key takeaways, the tool uses the complete extracted text.
 
-For specific questions, it retrieves the most relevant chunks using similarity search.
+For specific questions, the tool uses similarity search to retrieve the most relevant document sections.
 
 The embedding model used is:
 
@@ -237,9 +211,7 @@ sentence-transformers/all-MiniLM-L6-v2
 
 ## Agent Logic
 
-The agent is responsible for understanding the request and selecting the correct tool.
-
-Examples:
+The LangChain agent understands the request and decides which tool should be used.
 
 | User request                                    | Tool selected                   |
 | ----------------------------------------------- | ------------------------------- |
@@ -248,12 +220,12 @@ Examples:
 | `Summarize this PDF.`                           | PDF Summarizer Tool             |
 | `Search for AI news and calculate 10% of 5000.` | Web Search and Calculator Tools |
 
-The agent can answer general questions directly when no external tool is needed.
+The agent can also answer general questions directly when no external tool is required.
 
-The agent prompt contains instructions that help it:
+The agent instructions help it:
 
-* Choose the correct tool
-* Use multiple tools when required
+* Select the correct tool
+* Use multiple tools when needed
 * Avoid unnecessary tool calls
 * Return a clear final response
 * Handle tool failures gracefully
@@ -270,13 +242,11 @@ Google Gemini 2.5 Flash
 
 The assignment originally mentions the OpenAI API. Gemini was used because it provides a suitable free-tier option for development and testing.
 
-The Gemini model is connected through:
+Gemini is connected through:
 
 ```text
 langchain-google-genai
 ```
-
-The project structure allows the language model provider to be changed later without rewriting the individual tools.
 
 The model temperature is set to:
 
@@ -284,7 +254,66 @@ The model temperature is set to:
 0.3
 ```
 
-This helps produce responses that are clear and consistent while still allowing some flexibility.
+This helps produce clear and consistent responses while allowing some flexibility.
+
+The project structure allows the model provider to be changed later without rewriting the individual tools.
+
+---
+
+## WhatsApp Integration
+
+The Task 3 agent is connected to WhatsApp through the Twilio WhatsApp Sandbox.
+
+The same LangChain agent and tools used by the command-line application are reused by the WhatsApp interface.
+
+### WhatsApp Flow
+
+```text
+WhatsApp User
+      ↓
+Twilio WhatsApp Sandbox
+      ↓
+ngrok HTTPS Tunnel
+      ↓
+Flask Webhook
+whatsapp_app.py
+      ↓
+LangChain Agent
+      ↓
+Calculator / Web Search / PDF Summarizer
+      ↓
+Twilio REST API
+      ↓
+WhatsApp User
+```
+
+When a WhatsApp message arrives:
+
+1. Twilio sends the message to the Flask webhook.
+2. Flask reads the message and sender number.
+3. The request is submitted to a background worker.
+4. The user immediately receives an acknowledgement.
+5. The agent selects and executes the required tool or tools.
+6. The completed answer is sent through the Twilio REST API.
+
+The immediate acknowledgement is:
+
+```text
+Your request is being processed. I will send the answer shortly.
+```
+
+Background processing prevents Twilio from waiting while Gemini, web search, or PDF processing completes.
+
+The integration also provides:
+
+* Separate conversation memory for each WhatsApp user
+* Duplicate webhook protection
+* Tool tracking and execution timing
+* Error handling
+* A maximum of two simultaneous background requests
+* One final WhatsApp response limited to 1,500 characters
+
+Additional requests wait in the background queue until a worker becomes available.
 
 ---
 
@@ -296,29 +325,29 @@ The assignment requires any two bonus features. This project includes three.
 
 The application stores the latest five conversation messages.
 
-This allows the user to ask follow-up questions.
+This allows users to ask follow-up questions.
 
 Example:
 
 ```text
-You: Calculate 15% of 500.
+Calculate 15% of 500.
 ```
 
 Then:
 
 ```text
-You: Add that result to the original amount.
+Add that result to the original amount.
 ```
 
-The memory is limited to five messages so that the conversation history does not grow continuously.
+The command-line memory resets when the application closes.
 
-The memory resets when the application is closed.
+The WhatsApp interface maintains separate memory for each sender and resets when the Flask server restarts.
 
 ---
 
 ### 2. Tool Usage History
 
-The application records the tools used during the current session.
+The command-line interface records the tools used during the current session.
 
 Enter:
 
@@ -326,7 +355,7 @@ Enter:
 history
 ```
 
-to view the history.
+to display the tool history.
 
 Example output:
 
@@ -345,11 +374,13 @@ The history includes:
 * Tool status
 * Execution time
 
+The WhatsApp interface records similar information in the terminal and log file.
+
 ---
 
-### 3. Tool Execution Timing Metrics
+### 3. Tool Execution Timing
 
-LangChain callbacks are used to measure how long each tool takes to complete.
+LangChain callbacks measure how long each tool takes to complete.
 
 Example:
 
@@ -359,7 +390,7 @@ Status: Success
 Execution time: 2.41 seconds
 ```
 
-This helps monitor tool performance and identify slow operations.
+This helps monitor performance and identify slow operations.
 
 ---
 
@@ -371,9 +402,7 @@ Tool activity and application errors are stored in:
 tool_usage.log
 ```
 
-The log file is created automatically when the application runs.
-
-The log can include:
+The log may include:
 
 * User questions
 * Tool names
@@ -381,8 +410,12 @@ The log can include:
 * Execution time
 * Agent errors
 * Application errors
+* WhatsApp processing errors
+* Twilio sending errors
 
-The log file should not be uploaded if it contains unnecessary local testing information.
+The log file is created automatically when the application runs.
+
+It should not be included in the repository or submission ZIP if it contains unnecessary local testing data.
 
 ---
 
@@ -402,51 +435,89 @@ Task 3/
 ├── data/
 │   └── AI_and_Future_Jobs_20_Page_Report.pdf
 │
+├── docs/
+│   └── architecture_diagram.png
+│
 ├── app.py
+├── whatsapp_app.py
 ├── requirements.txt
 ├── README.md
 ├── .env.example
 └── .gitignore
 ```
 
-### File Responsibilities
+---
 
-#### `app.py`
+## File Responsibilities
+
+### `app.py`
 
 The main command-line application.
 
 It is responsible for:
 
-* Starting the program
 * Reading user input
-* Displaying the agent response
+* Displaying agent responses
 * Managing conversation memory
 * Recording tool history
 * Measuring tool execution time
 * Writing activity to the log file
 * Handling commands such as `history`, `pdf`, `exit`, and `quit`
 
-#### `agent/agent.py`
+It also contains shared components used by the WhatsApp interface:
+
+* `ToolTracker`
+* `extract_answer_text`
+* `keep_last_five_messages`
+
+---
+
+### `whatsapp_app.py`
+
+Connects the Task 3 agent to WhatsApp.
+
+It is responsible for:
+
+* Creating the Flask application
+* Receiving Twilio webhook requests
+* Reading incoming WhatsApp messages
+* Reading the sender’s WhatsApp number
+* Preventing duplicate message processing
+* Maintaining separate user conversations
+* Processing requests in background threads
+* Returning an immediate acknowledgement
+* Sending final answers through the Twilio REST API
+* Logging tool activity and application errors
+
+---
+
+### `agent/agent.py`
 
 Creates and configures the LangChain agent.
 
 It is responsible for:
 
 * Initializing Gemini
-* Registering the available tools
+* Registering the tools
 * Defining the agent instructions
 * Creating the tool-calling agent
 * Creating the `AgentExecutor`
 
-#### `tools/calculator.py`
+---
 
-Contains the calculator logic and calculator LangChain tool.
+### `tools/calculator.py`
 
-#### `tools/web_search.py`
+Contains the calculator logic and Calculator LangChain tool.
 
-Contains the DuckDuckGo search logic and web-search LangChain tool.
+---
 
-#### `tools/pdf_summarizer.py`
+### `tools/web_search.py`
+
+Contains the DuckDuckGo search logic, result formatting, summaries, and source links.
+
+---
+
+### `tools/pdf_summarizer.py`
 
 Contains:
 
@@ -458,24 +529,34 @@ Contains:
 * PDF summarization
 * PDF question answering
 
-#### `data/`
+---
 
-Contains the default PDF used by the application.
+### `data/`
 
-#### `.env.example`
+Contains the default PDF used by the project.
 
-Shows the required environment-variable format without containing a real API key.
+---
 
-#### `.gitignore`
+### `.env.example`
 
-Prevents private or unnecessary files from being uploaded, including:
+Shows the required environment-variable format without containing real credentials.
 
-* `.env`
-* `.venv`
-* `__pycache__`
-* Python cache files
-* Log files
-* Chroma database files
+---
+
+### `.gitignore`
+
+Prevents private or unnecessary files from being uploaded.
+
+Examples:
+
+```text
+.env
+.venv/
+__pycache__/
+*.pyc
+tool_usage.log
+chroma_db/
+```
 
 ---
 
@@ -491,34 +572,39 @@ The project requires:
 * Chroma
 * Hugging Face sentence-transformer embeddings
 * Python Dotenv
+* Flask
+* Twilio Python SDK
+* ngrok
 
 A valid Gemini API key and internet connection are required.
+
+The WhatsApp integration additionally requires:
+
+* A Twilio account
+* Access to the Twilio WhatsApp Sandbox
+* A WhatsApp number joined to the Sandbox
+* An active Flask server
+* An active ngrok tunnel
 
 ---
 
 ## Setup Instructions
 
-### 1. Download or clone the project
-
-Using Git:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/osamajahmad/Multi-tool-AI-agent-using-LangChain
 ```
 
-Then open the project folder:
+Open the project folder:
 
 ```bash
 cd Multi-tool-AI-agent-using-LangChain
 ```
 
-The exact folder name may be different depending on the repository name.
-
 ---
 
 ### 2. Create a virtual environment
-
-Run:
 
 ```bash
 python -m venv .venv
@@ -538,9 +624,7 @@ source .venv/bin/activate
 
 ---
 
-### 3. Install the dependencies
-
-Run:
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -550,7 +634,7 @@ The first time the PDF tool runs, the Hugging Face embedding model may need to b
 
 ---
 
-### 4. Configure the Gemini API key
+### 4. Configure environment variables
 
 Create a file named:
 
@@ -558,15 +642,29 @@ Create a file named:
 .env
 ```
 
-inside the main project folder.
+inside the project folder.
 
 Add:
 
 ```env
 GOOGLE_API_KEY=your_google_api_key_here
+
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_WHATSAPP_NUMBER=your_twilio_whatsapp_number
 ```
 
-The project also includes `.env.example` as a template.
+The WhatsApp number must include the `whatsapp:` prefix.
+
+Example:
+
+```env
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+```
+
+Use the number displayed in your Twilio Sandbox.
+
+A fixed recipient variable is not required because the application reads the recipient automatically from the incoming message.
 
 Do not upload the real `.env` file to GitHub or include it in the submission ZIP.
 
@@ -574,17 +672,15 @@ Do not upload the real `.env` file to GitHub or include it in the submission ZIP
 
 ### 5. Check the default PDF
 
-The default PDF should be located at:
+The default PDF should exist at:
 
 ```text
 data/AI_and_Future_Jobs_20_Page_Report.pdf
 ```
 
-The application uses this PDF unless the user selects another document.
-
 ---
 
-## Running the Application
+## Running the Command-Line Interface
 
 Run:
 
@@ -592,23 +688,21 @@ Run:
 python app.py
 ```
 
-The command-line interface will display:
+The command-line interface displays:
 
 * Available tools
 * Available commands
 * Example questions
 
-Example interaction:
+Example:
 
 ```text
 You: Calculate 15% VAT on 250 AED.
 ```
 
-The agent selects the Calculator Tool and returns the VAT amount and final total.
-
 ---
 
-## Application Commands
+## Command-Line Commands
 
 ### View tool history
 
@@ -616,15 +710,11 @@ The agent selects the Calculator Tool and returns the VAT amount and final total
 history
 ```
 
-Displays the tools used during the current session.
-
 ### Select another PDF
 
 ```text
 pdf
 ```
-
-The application then asks for the full path of the PDF.
 
 ### Stop the application
 
@@ -640,15 +730,121 @@ quit
 
 ---
 
-## Suggested Test Cases
+## Running the WhatsApp Interface
 
-### Calculator Tests
+### 1. Join the Twilio Sandbox
+
+In the Twilio Console:
+
+1. Open **Messaging**.
+2. Open **Try it out**.
+3. Select **Send a WhatsApp message**.
+4. Open the Sandbox page.
+5. Send the displayed join message from your WhatsApp account.
+
+Twilio should reply that your number has joined the Sandbox.
+
+---
+
+### 2. Start the Flask application
+
+Run:
+
+```bash
+python whatsapp_app.py
+```
+
+The application runs locally at:
+
+```text
+http://127.0.0.1:5000
+```
+
+The health-check endpoint is:
+
+```text
+http://127.0.0.1:5000/
+```
+
+Expected response:
+
+```json
+{
+  "status": "Task 3 WhatsApp agent is running"
+}
+```
+
+---
+
+### 3. Start ngrok
+
+Open a second terminal:
+
+```bash
+ngrok http 5000
+```
+
+ngrok provides a public HTTPS URL similar to:
+
+```text
+https://example.ngrok-free.app
+```
+
+---
+
+### 4. Configure the Twilio webhook
+
+In the Twilio Sandbox settings, set **When a message comes in** to:
+
+```text
+https://example.ngrok-free.app/whatsapp
+```
+
+Use:
+
+```text
+HTTP POST
+```
+
+Then save the configuration.
+
+The ngrok URL may change when ngrok restarts. If it changes, the webhook URL in Twilio must also be updated.
+
+---
+
+### 5. Send a WhatsApp message
+
+Keep both processes running:
+
+```bash
+python whatsapp_app.py
+```
+
+```bash
+ngrok http 5000
+```
+
+Then send a message to the Twilio Sandbox number.
+
+Example:
 
 ```text
 What is 125 * 42?
 ```
 
-Expected calculation:
+The user first receives the acknowledgement message, followed by the final answer.
+
+---
+
+## Suggested Test Cases
+
+### Calculator
+
+```text
+What is 125 * 42?
+```
+
+Expected result:
 
 ```text
 5250
@@ -671,38 +867,18 @@ Expected total:
 ```
 
 ```text
-Calculate monthly payment for 5000 divided by 12.
-```
-
-Expected result:
-
-```text
-416.6667
-```
-
-```text
-What is 10% of 10?
-```
-
-Expected result:
-
-```text
-1
-```
-
-```text
 Calculate 10 divided by 0.
 ```
 
 Expected result:
 
 ```text
-A division-by-zero error message
+A clear division-by-zero error message
 ```
 
 ---
 
-### Web Search Tests
+### Web Search
 
 ```text
 What is LangChain?
@@ -716,11 +892,11 @@ What is the latest AI news?
 What are the recent developments in LLMs?
 ```
 
-The response should include a summary and source links.
+The response should contain a concise summary and source links.
 
 ---
 
-### PDF Tests
+### PDF
 
 ```text
 Summarize this PDF.
@@ -742,7 +918,7 @@ The response should be based on the PDF content.
 
 ---
 
-### Multi-Tool Test
+### Multi-Tool Request
 
 ```text
 Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.
@@ -753,11 +929,15 @@ The agent should use:
 1. Web Search Tool
 2. Calculator Tool
 
-It should then combine both results into one response.
+Expected calculation:
+
+```text
+10% of 5000 AED = 500 AED
+```
 
 ---
 
-### Conversation Memory Test
+### Conversation Memory
 
 First ask:
 
@@ -775,24 +955,6 @@ The agent should use the recent conversation context.
 
 ---
 
-### Invalid Input Tests
-
-```text
-Calculate 10 divided by 0.
-```
-
-```text
-Summarize a PDF that does not exist.
-```
-
-```text
-Search the web without an internet connection.
-```
-
-The application should return a clear error message instead of stopping unexpectedly.
-
----
-
 ## Error Handling
 
 The project handles common errors such as:
@@ -801,196 +963,139 @@ The project handles common errors such as:
 * Invalid mathematical expressions
 * Division by zero
 * Missing Gemini API key
+* Missing Twilio configuration
 * Invalid PDF paths
 * Missing PDF files
-* Non-PDF file selection
 * PDFs with no extractable text
 * Web-search failures
 * Internet-connection problems
-* Agent initialization errors
-* Tool execution errors
+* Agent initialization failures
+* Tool execution failures
+* Duplicate Twilio webhook deliveries
+* Twilio message-sending failures
+* Gemini API quota exhaustion
 * Unexpected application errors
 
-The tools return clear messages so the user can understand what went wrong.
+The application returns clear error messages instead of stopping unexpectedly.
 
 ---
 
 ## Architecture Overview
 
-The project follows a modular architecture.
-
 ```text
-User
-  │
-  ▼
-Command-Line Interface
-app.py
-  │
-  ├── Conversation Memory
-  ├── Tool Usage History
-  ├── Timing Metrics
-  └── Logging
-  │
-  ▼
-LangChain Agent
-agent/agent.py
-  │
-  ▼
-Gemini 2.5 Flash
-  │
-  ├── Calculator Tool
-  ├── Web Search Tool
-  └── PDF Summarizer Tool
-          │
-          ├── PyPDF
-          ├── Text Splitter
-          ├── Hugging Face Embeddings
-          ├── Chroma Vector Store
-          └── Gemini Response Generation
+                         User
+                          │
+              ┌───────────┴───────────┐
+              │                       │
+              ▼                       ▼
+     Command-Line Interface        WhatsApp
+             app.py                   │
+              │                       ▼
+              │              Twilio WhatsApp Sandbox
+              │                       │
+              │                       ▼
+              │                ngrok HTTPS Tunnel
+              │                       │
+              │                       ▼
+              │                whatsapp_app.py
+              │                Flask Webhook
+              │                Background Processing
+              │                       │
+              └───────────┬───────────┘
+                          ▼
+              LangChain Tool-Calling Agent
+                    agent/agent.py
+                          │
+                          ▼
+                   Gemini 2.5 Flash
+                          │
+          ┌───────────────┼───────────────┐
+          ▼               ▼               ▼
+   Calculator Tool  Web Search Tool  PDF Summarizer
+                          │               │
+                          ▼               ▼
+                     DuckDuckGo      PDF RAG Pipeline
 ```
 
-The full architecture diagram is available here:
+The full architecture diagram is available at:
 
-```text
+```markdown
 ![Multi-Tool AI Agent Architecture](docs/architecture_diagram.png)
 ```
 
 ---
 
-## Challenges and Lessons Learned
+## Challenges
 
-### Challenges
+### Tool Selection
 
-#### 1. Choosing the Correct Tool
+The agent needed clear tool descriptions and instructions to select the correct tool for each request.
 
-One of the main challenges was making sure the agent selected the correct tool based on the user’s request.
+### Multi-Tool Requests
 
-Some requests were simple and required only one tool, while others required multiple tools. For example, a request could ask the agent to search for current AI news and also perform a calculation.
+Some requests required more than one tool and a combined final response.
 
-To improve tool selection, I wrote clear descriptions for each tool and added instructions to the agent prompt explaining when each tool should be used.
+### PDF Processing
 
----
+The PDF tool required text extraction, chunking, embeddings, vector storage, and similarity search.
 
-#### 2. Handling Multi-Tool Requests
+### Current Information
 
-The agent needed to complete requests that required more than one tool and then combine the results into one clear answer.
+The Web Search Tool was needed because the language model may not contain the latest information.
 
-For example:
+### Error Handling
 
-```text
-Search for the latest AI news and calculate 10% growth on a budget of 5000 AED.
-```
+The application needed to continue working when invalid input, API limits, missing files, or tool failures occurred.
 
-The agent had to:
+### WhatsApp Integration
 
-1. Use the Web Search Tool.
-2. Use the Calculator Tool.
-3. Combine both results into one final response.
+The existing agent had to be connected to WhatsApp without rewriting the original tools.
 
-This required testing the agent instructions and making sure the tools returned results in a format the agent could understand.
+### Slow Responses
 
----
+PDF and multi-tool requests sometimes took longer than Twilio’s webhook should remain open. Background processing was added so the application could acknowledge the request immediately and send the completed answer later.
 
-#### 3. Building the PDF Summarizer
+### API Limits
 
-The PDF Summarizer was the most challenging tool because the document could contain a large amount of text.
-
-Sending the full PDF directly to the language model for every question would be inefficient. To solve this, I used a Retrieval-Augmented Generation workflow.
-
-The PDF text is:
-
-1. Extracted using PyPDF.
-2. Divided into smaller chunks.
-3. Converted into embeddings.
-4. Stored in a Chroma vector store.
-5. Searched to find the sections most relevant to the user’s question.
-
-This allows the agent to answer questions using relevant parts of the document instead of processing the entire PDF every time.
+The Gemini free tier sometimes reached its request limit during repeated testing.
 
 ---
 
-#### 4. Working with Current Information
-
-The language model may not always contain the latest information.
-
-The Web Search Tool was added to retrieve current information using DuckDuckGo. The tool also returns source links so the user can check where the information came from.
-
-A challenge was making sure the search output remained clear and concise while still including useful sources.
-
----
-
-#### 5. Handling Invalid Inputs and Tool Failures
-
-The application needed to continue running even when the user entered invalid input or when a tool failed.
-
-Examples included:
-
-* Division by zero
-* Invalid mathematical expressions
-* Missing PDF files
-* PDFs with no extractable text
-* Empty user input
-* Web-search connection problems
-* Missing or exhausted API keys
-
-I added error handling so these problems return understandable messages instead of stopping the whole application.
-
----
-
-#### 6. Tracking Tool Execution
-
-I used LangChain callbacks to record which tools were called and how long each tool took to complete.
-
-This was challenging because the callback needed to track each tool separately and connect the start and end times of the same execution.
-
-The collected information is displayed in the tool-usage history and written to the log file.
-
----
-
-#### 7. API Usage Limits
-
-During testing, the Gemini API key sometimes reached its free-tier request limit.
-
-This made repeated testing slower because I occasionally needed to wait before sending another request.
-
-This taught me the importance of monitoring API usage, avoiding unnecessary model calls, and handling API-limit errors clearly.
-
----
-
-### Lessons Learned
+## Lessons Learned
 
 During this assignment, I learned how to:
 
-* Create custom tools using LangChain.
-* Connect multiple tools to one AI agent.
-* Write clear tool descriptions that improve tool routing.
-* Allow an agent to use more than one tool for a single request.
-* Use Gemini as the language model through LangChain.
-* Create a command-line interface for an AI application.
-* Store API keys securely using environment variables.
-* Handle invalid inputs and tool errors without stopping the application.
-* Add conversation memory for follow-up questions.
-* Limit conversation history to the most recent messages.
-* Use LangChain callbacks to track tool execution.
-* Measure and log tool execution time.
-* Search the web for current information.
-* Return source links with web-search results.
-* Extract text from PDF documents.
-* Split large documents into smaller chunks.
-* Create embeddings using a sentence-transformer model.
-* Store document embeddings in Chroma.
-* Retrieve relevant PDF content using similarity search.
-* Build a Retrieval-Augmented Generation workflow.
-* Organize a Python project into separate tools, agent, and application files.
-* Test individual tools and multi-tool requests.
-* Write setup instructions and project documentation.
+* Create custom LangChain tools
+* Connect several tools to one AI agent
+* Improve automatic tool routing
+* Handle multi-tool requests
+* Use Gemini through LangChain
+* Build a command-line AI application
+* Add conversation memory
+* Track tool usage
+* Measure tool execution time
+* Search the web for current information
+* Return source links
+* Extract and process PDF text
+* Create embeddings
+* Use Chroma vector storage
+* Build a RAG workflow
+* Handle API and tool errors
+* Store credentials securely
+* Connect a Python application to WhatsApp
+* Use the Twilio WhatsApp Sandbox
+* Create a Flask webhook
+* Expose a local server using ngrok
+* Process slower requests in background threads
+* Maintain separate memory for different WhatsApp users
+* Prevent duplicate webhook processing
+* Reuse the same agent through multiple interfaces
 
-Overall, this assignment helped me understand how an AI agent can reason about a user’s request, choose the correct tools, handle errors, and combine different tool results into one useful response.
-
+---
 
 ## Security Notes
 
-The real API key must only be stored in:
+The real Gemini API key and Twilio credentials must only be stored in:
 
 ```text
 .env
@@ -1013,13 +1118,54 @@ Example:
 
 ```env
 GOOGLE_API_KEY=your_google_api_key_here
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_WHATSAPP_NUMBER=your_twilio_whatsapp_number
 ```
+
+Never expose real credentials in:
+
+* GitHub commits
+* Screenshots
+* Demo videos
+* Public messages
+* Submission ZIP files
+
+---
+
+## WhatsApp Integration Limitations
+
+The current integration is intended for development and internship demonstration.
+
+Current limitations include:
+
+* It uses the Twilio WhatsApp Sandbox
+* Users must join the Sandbox before messaging
+* Flask and ngrok must remain running
+* The ngrok URL may change after restarting
+* Conversation memory resets when Flask restarts
+* Only two background agent requests run simultaneously
+* Additional requests wait in a queue
+* Only text messages are supported
+* WhatsApp PDF attachments are not supported
+* Long final answers are shortened to 1,500 characters
+* Gemini free-tier limits may delay or reject requests
+* Flask’s built-in server is not intended for production deployment
+
+A production version would require:
+
+* A permanent approved WhatsApp sender
+* Deployment to an online server
+* Persistent conversation storage
+* Stronger webhook validation
+* Production monitoring
+* Scalable background job processing
 
 ---
 
 ## Demo Video
 
-The five-minute demo shows:
+The demonstration video shows:
 
 * Project structure
 * Application startup
@@ -1029,14 +1175,10 @@ The five-minute demo shows:
 * Multi-tool request
 * Conversation memory
 * Tool usage history
-* Execution timing
+* Tool execution timing
 * Error handling
 
-Demo video link:
-
-```text
 [Watch the Demo Video](https://youtu.be/nj5EwYUReVg)
-```
 
 ---
 

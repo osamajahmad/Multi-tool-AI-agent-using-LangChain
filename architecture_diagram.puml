@@ -2,7 +2,7 @@
 
 title Multi-Tool AI Agent Architecture
 
-left to right direction
+top to bottom direction
 
 skinparam backgroundColor white
 skinparam shadowing false
@@ -11,13 +11,45 @@ skinparam packageStyle rectangle
 skinparam defaultTextAlignment center
 skinparam linetype ortho
 skinparam nodesep 35
-skinparam ranksep 45
+skinparam ranksep 40
+
+skinparam package {
+    BorderColor #64748B
+    FontColor #0F172A
+}
+
+skinparam component {
+    BorderColor #64748B
+    FontColor #0F172A
+}
+
+skinparam ArrowColor #475569
+
 
 actor "User" as User
 
-package "Application Layer" {
+
+package "Communication Channels" #F8FAFC {
+
+    component "Command-Line Input" as CLI
+
+    cloud "WhatsApp" as WhatsApp
+
+    cloud "Twilio WhatsApp\nSandbox" as Twilio
+
+    node "ngrok HTTPS Tunnel" as Ngrok
+
+    CLI -[hidden]right-> WhatsApp
+    WhatsApp -down-> Twilio : Message
+    Twilio -down-> Ngrok : Webhook request
+}
+
+
+package "Application Layer" #EFF6FF {
 
     component "Command-Line Interface\napp.py" as App
+
+    component "WhatsApp Interface\nwhatsapp_app.py\n\nFlask Webhook\nBackground Processing\nTwilio Messaging" as WhatsAppApp
 
     component "Conversation Memory\nLast 5 Messages" as Memory
 
@@ -25,21 +57,31 @@ package "Application Layer" {
 
     database "Application Log\ntool_usage.log" as Log
 
+    App -[hidden]right-> WhatsAppApp
+    Memory -[hidden]right-> Tracker
+    Tracker -[hidden]right-> Log
+
     App -down-> Memory
     App -down-> Tracker
-    Tracker -down-> Log
+
+    WhatsAppApp -down-> Memory
+    WhatsAppApp -down-> Tracker
+
+    Tracker -right-> Log
 }
 
-package "Agent Layer" {
+
+package "Agent Layer" #FFF7ED {
 
     component "LangChain Tool-Calling Agent\nagent/agent.py" as Agent
 
     cloud "Google Gemini API\nGemini 2.5 Flash" as Gemini
 
-    Agent -down-> Gemini
+    Agent -right-> Gemini : Reasoning and\nTool Selection
 }
 
-package "Tools Layer" {
+
+package "Tools Layer" #F0FDF4 {
 
     component "Calculator Tool\ntools/calculator.py\n\nMath Expressions\nPercentages\nVAT and Discounts" as Calculator
 
@@ -47,28 +89,45 @@ package "Tools Layer" {
 
     component "PDF Summarizer Tool\ntools/pdf_summarizer.py\n\nSummaries\nKey Takeaways\nDocument Q&A" as PDFTool
 
-    Calculator -[hidden]down-> WebSearch
-    WebSearch -[hidden]down-> PDFTool
+    Calculator -[hidden]right-> WebSearch
+    WebSearch -[hidden]right-> PDFTool
 }
 
-package "External Services and PDF RAG" {
+
+package "External Services and PDF RAG" #FAF5FF {
 
     cloud "DuckDuckGo\nWeb Search" as DuckDuckGo
 
     component "PDF RAG Pipeline\n\nPyPDF Text Extraction\n↓\nText Splitting\n↓\nHugging Face Embeddings\n↓\nChroma Vector Store" as RAG
 
-    DuckDuckGo -[hidden]down-> RAG
+    DuckDuckGo -[hidden]right-> RAG
 }
 
-User --> App
-App --> Agent
 
-Agent --> Calculator
-Agent --> WebSearch
-Agent --> PDFTool
+User -down-> CLI : CLI question
+CLI -down-> App
 
-WebSearch --> DuckDuckGo
-PDFTool --> RAG
-PDFTool --> Gemini
+User -right-> WhatsApp : WhatsApp message
+
+Ngrok -down-> WhatsAppApp : POST /whatsapp
+
+WhatsAppApp ..> Twilio : Immediate acknowledgement\nand final answer
+Twilio ..> WhatsApp : Deliver response
+
+
+App -down-> Agent : Question + Chat History
+WhatsAppApp -down-> Agent : Message + Chat History
+
+
+Agent -down-> Calculator
+Agent -down-> WebSearch
+Agent -down-> PDFTool
+
+
+WebSearch -down-> DuckDuckGo
+PDFTool -down-> RAG
+
+PDFTool ..> Gemini : PDF Summary\nand Q&A
+
 
 @enduml
