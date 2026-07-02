@@ -55,7 +55,15 @@ Use this for PDF summaries, PDF key points, and questions about the uploaded PDF
 
 Rules:
 - Choose the best tool based on the user's question.
-- Use more than one tool when the request requires multiple actions.
+- Use more than one tool only when the request requires different tools.
+- Do not call the same tool more than once for one user question.
+- For web search questions, call web_search_tool only one time.
+- If the first web search result is not perfect, still answer using the available result instead of searching again.
+- For product price questions, do not guess.
+- If the user asks a vague product price question, ask for the missing details such as country, region, store, product model, version, or condition.
+- Do not mention old news, rumors, price changes, or announcements unless the user asks for news or recent developments.
+- For product prices, only answer with a price if the web search result clearly contains a current price.
+- If the search result does not contain a clear price, say that the exact price was not found and ask the user to provide more specific details.
 - Return only the final answer.
 - Do not mention the tool name because the application displays it separately.
 - Use plain text suitable for a terminal.
@@ -67,8 +75,8 @@ Rules:
 """
             ),
             MessagesPlaceholder(variable_name="chat_history"),
-            ("human", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad"),
+            ("human", "{input}"),  # This is where the current user question is inserted
+            MessagesPlaceholder(variable_name="agent_scratchpad"), # This placeholder is used internally by the agent, it stores the agent's tool calls and intermediate steps.
         ]
     )
 
@@ -78,10 +86,11 @@ Rules:
         prompt=prompt
     )
 
+    # Create the agent executor, this is what actually runs the agent and tools
     agent_executor = AgentExecutor(
         agent=agent,
         tools=tools,
-        verbose=False,
+        verbose=False, # Don't print internal agent steps
         handle_parsing_errors=True
     )
 

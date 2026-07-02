@@ -36,14 +36,17 @@ def detect_currency(user_text):
 # What is 20% of 500?
 def calculate_percentage(user_text):
 
+    # Convert the user's text to lowercase so checking words like "VAT", "vat", or "Tax" becomes easier and consistent
     text = user_text.lower()
-    currency = detect_currency(user_text)
+    currency = detect_currency(user_text) # Detect if the user mentioned a currency
 
+    # Search for a percentage pattern in the text.
     percent_match = re.search(r"(\d+(?:\.\d+)?)\s*%", text)
 
     if not percent_match:
         return None
 
+    # Convert the percentage number to float
     percent = float(percent_match.group(1))
 
     # Remove the percentage part before searching for the main amount.
@@ -52,6 +55,7 @@ def calculate_percentage(user_text):
         + text[percent_match.end():]
     )
 
+    # Search for the amount without a percentage
     amount_match = re.search(
         r"\d+(?:\.\d+)?",
         text_without_percentage
@@ -64,6 +68,8 @@ def calculate_percentage(user_text):
 
     percentage_value = amount * percent / 100
 
+
+    # If the question is about VAT or tax, calculate the percentage and add it to the original amount
     if "vat" in text or "tax" in text:
         total = amount + percentage_value
 
@@ -73,6 +79,7 @@ def calculate_percentage(user_text):
             f"Total with VAT is {clean_number(total)}{currency}."
         )
 
+    # If the question is about a discount, calculate the percentage and subtract it from the original amount
     if "discount" in text:
         final_price = amount - percentage_value
 
@@ -81,20 +88,23 @@ def calculate_percentage(user_text):
             f"{clean_number(percentage_value)}{currency}. "
             f"Final price after discount is {clean_number(final_price)}{currency}."
         )
-
+    
+    # If it is a normal percentage question, just return the percentage value
     return (
         f"{clean_number(percent)}% of {clean_number(amount)}{currency} is "
         f"{clean_number(percentage_value)}{currency}."
     )
 
-# Convert user text into a simple math expression.
+# Convert user text into a simple math expression
 def prepare_expression(user_text):
 
     expression = user_text.lower()
 
+    # Remove common question words that are not needed for calculation
     expression = expression.replace("what is", "")
     expression = expression.replace("calculate", "")
     expression = expression.replace("monthly payment for", "")
+    # Replace English math words with real math symbols
     expression = expression.replace("divided by", "/")
     expression = expression.replace("divide by", "/")
     expression = expression.replace("multiply by", "*")
@@ -102,14 +112,17 @@ def prepare_expression(user_text):
     expression = expression.replace("times", "*")
     expression = expression.replace("plus", "+")
     expression = expression.replace("minus", "-")
+    # Replace alternative multiplication/division symbols with Python symbols
     expression = expression.replace("x", "*")
     expression = expression.replace("×", "*")
     expression = expression.replace("÷", "/")
+    # Remove question marks because they are not part of math expressions
     expression = expression.replace("?", "")
 
     # Keep only numbers and math symbols
     expression = re.sub(r"[^0-9+\-*/(). ]", "", expression)
 
+    # Remove extra space
     return expression.strip()
 
 # Main calculator function.

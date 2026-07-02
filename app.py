@@ -43,9 +43,10 @@ def extract_answer_text(content):
 class ToolTracker(BaseCallbackHandler):
 
     def __init__(self):
-        self.start_times = {}
-        self.tool_records = []
+        self.start_times = {} # Stores the start time for each running tool
+        self.tool_records = [] # Stores final records for tools that were used
 
+    # This method runs automatically when a tool starts
     def on_tool_start(
         self,
         serialized,
@@ -60,11 +61,13 @@ class ToolTracker(BaseCallbackHandler):
         else:
             tool_name = "Unknown tool"
 
+        # Save the tool name and the current start time. Later, when the tool finishes, we use this to calculate duration
         self.start_times[run_id] = {
             "name": tool_name,
             "start_time": time.time()
         }
 
+    # This method runs automatically when a tool ends
     def on_tool_end(
         self,
         output,
@@ -83,7 +86,8 @@ class ToolTracker(BaseCallbackHandler):
 
         end_time = time.time()
         duration = round(end_time - start_time, 2)
-
+        
+        # Save the tool usage record as successful
         self.tool_records.append(
             {
                 "name": tool_name,
@@ -92,6 +96,7 @@ class ToolTracker(BaseCallbackHandler):
             }
         )
 
+    # This method runs automatically when a tool fails
     def on_tool_error(
         self,
         error,
@@ -196,6 +201,7 @@ def show_intro():
 # Start the command-line chatbot.
 def main():
 
+    # Show the welcome screen and instructions
     show_intro()
 
     try:
@@ -211,12 +217,13 @@ def main():
     # Bonus 2: Tool usage history
     tool_usage_history = []
 
+    # Keep the chatbot running until the user types quit or exit
     while True:
         user_input = input("\nYou: ")
 
         user_input = user_input.strip()
 
-        if user_input.lower() == "quit":
+        if user_input.lower() == "quit" or user_input.lower() == "exit":
             print("\nGoodbye!")
             break
 
@@ -245,12 +252,12 @@ def main():
                     "chat_history": chat_history
                 },
                 config={
-                    "callbacks": [tracker]
+                    "callbacks": [tracker] # The tracker callback records tool usage automatically
                 }
             )
 
-            raw_answer = response["output"]
-            answer = extract_answer_text(raw_answer)
+            raw_answer = response["output"] # Get the raw response from the agent
+            answer = extract_answer_text(raw_answer) # Convert the answer into clean readable text
 
             print("\nAssistant:")
             print(answer)
